@@ -35,7 +35,8 @@ import kotlinx.coroutines.delay
 fun MatchPresenceScreen(
     viewModel: MatchViewModel,
     onNavigateToAdmin: () -> Unit,
-    onNavigateToField: () -> Unit
+    onNavigateToField: () -> Unit,
+    onNavigateToRegisterProfile: () -> Unit
 ) {
     val profile = viewModel.currentUserProfile
     val matchState = viewModel.matchState
@@ -100,6 +101,18 @@ fun MatchPresenceScreen(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Botão Editar Perfil
+                    IconButton(
+                        onClick = onNavigateToRegisterProfile,
+                        modifier = Modifier
+                            .background(SurfaceDark, CircleShape)
+                            .border(1.dp, SurfaceLightDark, CircleShape)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Editar Perfil", tint = NeonGreen)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     // Botão Campinho (Visualização)
                     IconButton(
                         onClick = {

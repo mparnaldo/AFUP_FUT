@@ -69,9 +69,11 @@ class MainActivity : ComponentActivity() {
                             RegisterAthleteScreen(
                                 viewModel = viewModel,
                                 onRegistrationSuccess = {
-                                    navController.navigate("match_presence") {
-                                        popUpTo("register_profile") { inclusive = true }
-                                        popUpTo("login") { inclusive = true }
+                                    if (!navController.popBackStack()) {
+                                        navController.navigate("match_presence") {
+                                            popUpTo("register_profile") { inclusive = true }
+                                            popUpTo("login") { inclusive = true }
+                                        }
                                     }
                                 }
                             )
@@ -84,6 +86,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToField = {
                                     navController.navigate("soccer_field")
+                                },
+                                onNavigateToRegisterProfile = {
+                                    navController.navigate("register_profile")
                                 }
                             )
                         }

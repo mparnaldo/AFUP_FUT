@@ -241,4 +241,15 @@ class FirebaseRepository {
             false
         }
     }
+
+    // Atualiza a lista completa de presença da partida atual no Firestore
+    suspend fun updateMatchPlayersList(playersList: List<PresencePlayer>): Boolean {
+        return try {
+            firestore.collection("matches").document("current_match")
+                .update("playersList", playersList).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

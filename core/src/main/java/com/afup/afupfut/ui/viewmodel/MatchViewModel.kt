@@ -315,8 +315,36 @@ class MatchViewModel : ViewModel() {
         }
     }
 
+    fun togglePlayerPresenceConfirmation(athleteId: String, isConfirmed: Boolean) {
+        val state = matchState ?: return
+        val updatedList = state.playersList.map { player ->
+            if (player.athleteId == athleteId) {
+                player.copy(isConfirmed = isConfirmed)
+            } else {
+                player
+            }
+        }
+        viewModelScope.launch {
+            repository.updateMatchPlayersList(updatedList)
+        }
+    }
+
+    fun updatePlayerPresenceType(athleteId: String, newType: String) {
+        val state = matchState ?: return
+        val updatedList = state.playersList.map { player ->
+            if (player.athleteId == athleteId) {
+                player.copy(type = newType)
+            } else {
+                player
+            }
+        }
+        viewModelScope.launch {
+            repository.updateMatchPlayersList(updatedList)
+        }
+    }
+
     fun generateTeams(numTeams: Int = 2) {
-        val currentPlayers = matchState?.playersList ?: return
+        val currentPlayers = (matchState?.playersList ?: return).filter { it.isConfirmed }
         val athletesMap = allAthletes.associateBy { it.id }
         teams = TeamBalancer.balanceTeams(currentPlayers, athletesMap, numTeams)
     }

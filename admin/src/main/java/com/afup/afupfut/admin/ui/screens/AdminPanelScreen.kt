@@ -28,6 +28,8 @@ import coil3.compose.AsyncImage
 import com.afup.afupfut.data.model.Athlete
 import com.afup.afupfut.ui.theme.*
 import com.afup.afupfut.ui.viewmodel.MatchViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,8 +50,14 @@ fun AdminPanelScreen(
     val isSuperuser = viewModel.currentUserEmail?.equals("mpires.arnaldo@gmail.com", ignoreCase = true) == true || currentUserProfile?.isAdmin == true
 
     var showDatePickerDialog by remember { mutableStateOf(false) }
-    var matchDateInput by remember { mutableStateOf("") }
+    var matchDateInput by remember {
+        mutableStateOf(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+    }
     
+    // Abas de Controle
+    var selectedTabState by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Partida Atual", "Atletas & Níveis")
+
     // Controle da janela de avaliação por estrelas
     var selectedAthleteForRating by remember { mutableStateOf<Athlete?>(null) }
     var ratingStarsSelected by remember { mutableIntStateOf(5) }
@@ -97,250 +105,397 @@ fun AdminPanelScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // --- CONTROLE DE ABERTURA DE LISTA ---
-            Card(
+            // Abas
+            TabRow(
+                selectedTabIndex = selectedTabState,
+                containerColor = SurfaceDark,
+                contentColor = NeonGreen,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, SurfaceLightDark, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                    .padding(vertical = 8.dp)
+                    .clip(RoundedCornerShape(8.dp))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Lista de Presença",
-                        color = TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabState == index,
+                        onClick = { selectedTabState = index },
+                        text = {
                             Text(
-                                text = if (matchState?.isOpen == true) "Inscrições Abertas" else "Inscrições Fechadas",
-                                color = if (matchState?.isOpen == true) NeonGreen else TextSecondary,
+                                text = title,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = if (matchState?.isOpen == true) "Data: ${matchState.matchDate}" else "Status: Inativo",
-                                color = TextMuted,
-                                fontSize = 12.sp
+                                color = if (selectedTabState == index) NeonGreen else TextSecondary
                             )
                         }
-
-                        Switch(
-                            checked = matchState?.isOpen == true,
-                            onCheckedChange = { open ->
-                                if (open) {
-                                    showDatePickerDialog = true
-                                } else {
-                                    viewModel.toggleMatchState(isOpen = false, date = matchState?.matchDate ?: "")
-                                }
-                            },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = BackgroundDark,
-                                checkedTrackColor = NeonGreen,
-                                uncheckedThumbColor = TextMuted,
-                                uncheckedTrackColor = SurfaceLightDark
-                            )
-                        )
-                    }
+                    )
                 }
             }
 
-            // --- SEÇÃO DE ALERTAS (ATLETAS NÃO CLASSIFICADOS) ---
-            if (unratedAthletes.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (selectedTabState == 0) {
+                // TAB 0: Partida Atual
+                
+                // Card de Controle
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, RedError.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = RedError.copy(alpha = 0.08f))
+                        .border(1.dp, SurfaceLightDark, RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = RedError)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Novos Atletas Pendentes (${unratedAthletes.size})",
-                                color = RedError,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Lista de Presença",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = if (matchState?.isOpen == true) "Inscrições Abertas" else "Inscrições Fechadas",
+                                    color = if (matchState?.isOpen == true) NeonGreen else TextSecondary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    text = if (matchState?.isOpen == true) "Data: ${matchState.matchDate}" else "Status: Inativo",
+                                    color = TextMuted,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Switch(
+                                checked = matchState?.isOpen == true,
+                                onCheckedChange = { open ->
+                                    if (open) {
+                                        matchDateInput = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                        showDatePickerDialog = true
+                                    } else {
+                                        viewModel.toggleMatchState(isOpen = false, date = matchState?.matchDate ?: "")
+                                    }
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = BackgroundDark,
+                                    checkedTrackColor = NeonGreen,
+                                    uncheckedThumbColor = TextMuted,
+                                    uncheckedTrackColor = SurfaceLightDark
+                                )
                             )
                         }
-                        Text(
-                            text = "Toque em um atleta abaixo para classificar e integrá-lo ao algoritmo.",
-                            color = TextSecondary,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                        )
+                    }
+                }
 
-                        // Lista rápida horizontal de pendentes
-                        Row(
-                            modifier = Modifier.horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            unratedAthletes.forEach { athlete ->
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Botão Gerar Times (Apenas com confirmados)
+                val confirmedPlayersCount = remember(matchState?.playersList) {
+                    matchState?.playersList?.count { it.isConfirmed } ?: 0
+                }
+
+                Button(
+                    onClick = {
+                        viewModel.generateTeams()
+                        onNavigateToField()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ElectricCyan),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = confirmedPlayersCount > 0
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Groups, contentDescription = null, tint = BackgroundDark)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "GERAR TIMES ($confirmedPlayersCount CONFIRMADOS)",
+                            color = BackgroundDark,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Confirmar Presença In Loco",
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+
+                // Listagem de presença interativa
+                val currentPlayers = matchState?.playersList ?: emptyList()
+                if (currentPlayers.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.SportsSoccer, contentDescription = null, tint = TextMuted, modifier = Modifier.size(48.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Nenhum atleta inscrito na lista.", color = TextMuted)
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(currentPlayers) { player ->
+                            val isMember = player.type == "Associado"
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(SurfaceDark, RoundedCornerShape(14.dp))
+                                    .border(1.dp, SurfaceLightDark, RoundedCornerShape(14.dp))
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Avatar
                                 Box(
                                     modifier = Modifier
-                                        .background(SurfaceDark, RoundedCornerShape(12.dp))
-                                        .border(1.dp, RedError.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
-                                        .clickable {
-                                            selectedAthleteForRating = athlete
-                                            ratingStarsSelected = 5
-                                        }
-                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(SurfaceLightDark)
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.StarBorder, contentDescription = null, tint = RedError, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(text = athlete.nickname, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    if (player.photoUrl.isNotBlank()) {
+                                        AsyncImage(
+                                            model = player.photoUrl,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Icon(Icons.Default.Person, contentDescription = null, tint = TextMuted, modifier = Modifier.align(Alignment.Center))
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                // Apelido e Nome
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = player.nickname, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                    Text(text = player.name, color = TextSecondary, fontSize = 11.sp)
+                                }
+
+                                // Badge interativa (clicável para alternar)
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            if (isMember) MemberGold.copy(alpha = 0.15f) else GuestCyan.copy(alpha = 0.15f),
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .border(
+                                            1.dp,
+                                            if (isMember) MemberGold else GuestCyan,
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable {
+                                            val nextType = if (isMember) "Convidado" else "Associado"
+                                            viewModel.updatePlayerPresenceType(player.athleteId, nextType)
+                                        }
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = player.type,
+                                        color = if (isMember) MemberGold else GuestCyan,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                // Checkbox de Confirmação
+                                Checkbox(
+                                    checked = player.isConfirmed,
+                                    onCheckedChange = { confirmed ->
+                                        viewModel.togglePlayerPresenceConfirmation(player.athleteId, confirmed)
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = NeonGreen,
+                                        uncheckedColor = TextSecondary,
+                                        checkmarkColor = BackgroundDark
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // TAB 1: Atletas & Níveis
+                if (unratedAthletes.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, RedError.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(containerColor = RedError.copy(alpha = 0.08f))
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = RedError)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Novos Atletas Pendentes (${unratedAthletes.size})",
+                                    color = RedError,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                            Text(
+                                text = "Toque em um atleta abaixo para classificar e integrá-lo ao algoritmo.",
+                                color = TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                            )
+
+                            // Lista rápida horizontal de pendentes
+                            Row(
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                unratedAthletes.forEach { athlete ->
+                                    Box(
+                                        modifier = Modifier
+                                            .background(SurfaceDark, RoundedCornerShape(12.dp))
+                                            .border(1.dp, RedError.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                            .clickable {
+                                                selectedAthleteForRating = athlete
+                                                ratingStarsSelected = 5
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.StarBorder, contentDescription = null, tint = RedError, modifier = Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(text = athlete.nickname, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Classificar Nível dos Atletas",
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
 
-            // --- BOTAO GERAR TIMES ---
-            Button(
-                onClick = {
-                    viewModel.generateTeams()
-                    onNavigateToField()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = ElectricCyan),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = (matchState?.playersList?.isNotEmpty() == true)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Groups, contentDescription = null, tint = BackgroundDark)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "GERAR TIMES BALANCEADOS (${matchState?.playersList?.size ?: 0} jog.)",
-                        color = BackgroundDark,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // --- LISTA DE JOGADORES DO CLUBE PARA AVALIAÇÃO ---
-            Text(
-                text = "Classificar Nível dos Atletas",
-                color = TextPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(allAthletes) { athlete ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(SurfaceDark, RoundedCornerShape(14.dp))
-                            .border(1.dp, SurfaceLightDark, RoundedCornerShape(14.dp))
-                            .clickable {
-                                selectedAthleteForRating = athlete
-                                ratingStarsSelected = athlete.rating ?: 5
-                            }
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Foto
-                        Box(
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(allAthletes) { athlete ->
+                        Row(
                             modifier = Modifier
-                                .size(45.dp)
-                                .clip(CircleShape)
-                                    .background(SurfaceLightDark)
+                                .fillMaxWidth()
+                                .background(SurfaceDark, RoundedCornerShape(14.dp))
+                                .border(1.dp, SurfaceLightDark, RoundedCornerShape(14.dp))
+                                .clickable {
+                                    selectedAthleteForRating = athlete
+                                    ratingStarsSelected = athlete.rating ?: 5
+                                }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (athlete.photoUrl.isNotBlank()) {
-                                AsyncImage(
-                                    model = athlete.photoUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            } else {
-                                Icon(Icons.Default.Person, contentDescription = null, tint = TextMuted, modifier = Modifier.align(Alignment.Center))
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        // Nome
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = athlete.nickname, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                                if (athlete.isManager) {
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .background(NeonGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(text = "GESTOR", color = NeonGreen, fontSize = 9.sp, fontWeight = FontWeight.Black)
-                                    }
+                            // Foto
+                            Box(
+                                modifier = Modifier
+                                    .size(45.dp)
+                                    .clip(CircleShape)
+                                    .background(SurfaceLightDark)
+                            ) {
+                                if (athlete.photoUrl.isNotBlank()) {
+                                    AsyncImage(
+                                        model = athlete.photoUrl,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = TextMuted, modifier = Modifier.align(Alignment.Center))
                                 }
                             }
-                            Text(
-                                text = athlete.positions.joinToString(", ") + " • ${athlete.getAge()} anos",
-                                color = TextSecondary,
-                                fontSize = 12.sp
-                            )
-                        }
 
-                        val isThisAthleteSuperuser = athlete.isAdmin
+                            Spacer(modifier = Modifier.width(12.dp))
 
-                        if (isSuperuser && !isThisAthleteSuperuser) {
-                            IconButton(
-                                onClick = { athleteForRoleChange = athlete },
-                                modifier = Modifier.padding(end = 4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Shield,
-                                    tint = if (athlete.isManager) NeonGreen else TextMuted,
-                                    contentDescription = "Gerenciar Permissão"
+                            // Nome
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = athlete.nickname, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                    if (athlete.isManager) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .background(NeonGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(text = "GESTOR", color = NeonGreen, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                                        }
+                                    }
+                                }
+                                Text(
+                                    text = athlete.positions.joinToString(", ") + " • ${athlete.getAge()} anos",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
                                 )
                             }
-                        }
 
-                        // Rating Atual (Estrelas)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (athlete.rating != null) {
-                                Icon(Icons.Default.Star, contentDescription = null, tint = GoldStar, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "${athlete.rating}/10",
-                                    color = GoldStar,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .background(RedError.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                            val isThisAthleteSuperuser = athlete.isAdmin
+
+                            if (isSuperuser && !isThisAthleteSuperuser) {
+                                IconButton(
+                                    onClick = { athleteForRoleChange = athlete },
+                                    modifier = Modifier.padding(end = 4.dp)
                                 ) {
-                                    Text(text = "Pendente", color = RedError, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Icon(
+                                        imageVector = Icons.Default.Shield,
+                                        tint = if (athlete.isManager) NeonGreen else TextMuted,
+                                        contentDescription = "Gerenciar Permissão"
+                                    )
+                                }
+                            }
+
+                            // Rating Atual (Estrelas)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (athlete.rating != null) {
+                                    Icon(Icons.Default.Star, contentDescription = null, tint = GoldStar, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "${athlete.rating}/10",
+                                        color = GoldStar,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(RedError.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(text = "Pendente", color = RedError, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }
@@ -385,7 +540,6 @@ fun AdminPanelScreen(
                             if (matchDateInput.isNotBlank()) {
                                 viewModel.toggleMatchState(isOpen = true, date = matchDateInput)
                                 showDatePickerDialog = false
-                                matchDateInput = ""
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = NeonGreen)

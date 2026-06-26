@@ -99,7 +99,7 @@ fun RegisterAthleteScreen(
     var isFootDropdownExpanded by remember { mutableStateOf(false) }
 
     // Controle do Dropdown de Tipo de Vínculo (Associado vs Convidado)
-    var athleteType by remember { mutableStateOf("Associado") }
+    var athleteType by remember { mutableStateOf(viewModel.currentUserProfile?.athleteType ?: "Associado") }
     var isTypeDropdownExpanded by remember { mutableStateOf(false) }
 
     Box(
