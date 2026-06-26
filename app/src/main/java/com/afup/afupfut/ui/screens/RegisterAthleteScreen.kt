@@ -3,8 +3,10 @@ package com.afup.afupfut.ui.screens
 import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +35,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RegisterAthleteScreen(
     viewModel: MatchViewModel,
@@ -134,7 +136,7 @@ fun RegisterAthleteScreen(
                     .background(SurfaceDark)
                     .clickable {
                         photoPickerLauncher.launch(
-                            androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.Request(
+                            PickVisualMediaRequest(
                                 ActivityResultContracts.PickVisualMedia.ImageOnly
                             )
                         )
