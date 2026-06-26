@@ -88,7 +88,7 @@ tasks.register<Copy>("copyApkToGeneratedFolder") {
     rename { "AFUP_FUT-debug.apk" }
 }
 
-// Vincula a cópia do APK ao final do build de assembleDebug
-tasks.named("assembleDebug") {
+// Vincula a cópia do APK ao final do build de assembleDebug de forma compatível com a criação tardia das tarefas do AGP
+tasks.matching { it.name == "assembleDebug" }.configureEach {
     finalizedBy("copyApkToGeneratedFolder")
 }
