@@ -1,0 +1,29 @@
+# Gradle and Android Build files
+*.iml
+.gradle/
+/local.properties
+/.idea/
+build/
+**/build/
+/captures
+.externalNativeBuild
+.cxx
+
+# Exclude compiled binaries by default, except the designated APKs folder
+*.class
+*.dex
+*.ap_
+*.apk
+!/APKs Gerados/
+!/APKs Gerados/*.apk
+
+# Firebase and Google keys (sensitive keys should not be public)
+.firebase/
+firebase-debug.log*
+.firebaserc
+google-services.json
+
+# System files
+.DS_Store
+*.swp
+*~
