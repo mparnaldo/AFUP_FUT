@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "AFUP_FUT"
 include(":app")
+include(":admin")
+include(":core")

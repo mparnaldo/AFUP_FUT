@@ -14,36 +14,52 @@ Este documento orienta detalhadamente como criar, configurar e conectar o Fireba
 
 ---
 
-## Passo 2: Registrar o Aplicativo Android
+## Passo 2: Registrar os Aplicativos Android no Firebase
 
-1. Na tela inicial do seu projeto no console do Firebase, clique no ícone do **Android** (a figura do robozinho) para adicionar um aplicativo.
-2. No campo **Nome do pacote do Android**, insira exatamente o ID do pacote configurado no aplicativo:
-   ```text
-   com.afup.afupfut
-   ```
-3. No campo **Apelido do app (opcional)**, insira `AFUP FUT Android`.
-4. No campo **Certificado de assinatura de depuração SHA-1 (opcional)**, você pode inserir sua chave de assinatura (útil se for usar login do Google futuramente).
-   - Para obter essa chave no seu terminal local, execute:
-     ```bash
-     ./gradlew signingReport
+Como agora temos dois aplicativos separados (um para os Atletas e outro para o Admin), você deve registrar **ambos** no mesmo projeto do Firebase:
+
+1. **Registrar o Aplicativo do Atleta**:
+   - Na tela inicial do projeto no console do Firebase, clique no ícone do **Android** para adicionar um aplicativo.
+   - No **Nome do pacote do Android**, insira:
+     ```text
+     com.afup.afupfut
      ```
-     Copie o valor `SHA1` listado na tarefa de debug e cole no campo correspondente.
-5. Clique em **Registrar app**.
+   - No **Apelido do app**, insira `AFUP FUT Atleta`.
+   - No **SHA-1 (opcional)**, insira o valor obtido no seu terminal via `./gradlew signingReport`:
+     `C8:4B:AB:38:85:65:D3:F0:0B:77:59:42:06:3D:32:5A:F5:15:7F:CE`
+   - Clique em **Registrar app**.
+
+2. **Registrar o Aplicativo do Admin**:
+   - No console do Firebase, acesse as **Configurações do Projeto** (ícone de engrenagem no canto superior esquerdo).
+   - Na aba *Geral*, role até o final da página e clique em **Adicionar app** -> Selecione **Android**.
+   - No **Nome do pacote do Android**, insira:
+     ```text
+     com.afup.afupfut.admin
+     ```
+   - No **Apelido do app**, insira `AFUP FUT Admin`.
+   - No **SHA-1 (opcional)**, insira o mesmo código SHA-1 acima.
+   - Clique em **Registrar app**.
 
 ---
 
 ## Passo 3: Baixar e Adicionar o Arquivo de Configuração
 
-1. O console irá gerar o arquivo de configuração **`google-services.json`**.
+1. Após registrar os dois aplicativos, o Firebase permitirá baixar um arquivo **`google-services.json`** unificado (contendo a configuração de ambos).
 2. Faça o download desse arquivo.
-3. Copie o arquivo `google-services.json` baixado e coloque-o na pasta:
-   ```text
-   /home/arnaldo/Documentos/Android-PRJ/AFUP_FUT/app/
-   ```
+3. Copie este mesmo arquivo `google-services.json` para **duas** pastas no seu projeto:
+   - Pasta do aplicativo Atleta:
+     ```text
+     /home/arnaldo/Documentos/Android-PRJ/AFUP_FUT/app/
+     ```
+   - Pasta do aplicativo Admin:
+     ```text
+     /home/arnaldo/Documentos/Android-PRJ/AFUP_FUT/admin/
+     ```
+   
    > [!IMPORTANT]
-   > O build do aplicativo falhará se o arquivo `google-services.json` não estiver presente dentro da pasta `app/`.
+   > A compilação local falhará se o arquivo `google-services.json` não estiver presente em ambas as pastas `app/` e `admin/`.
 
-4. Clique em **Próximo** nas etapas restantes no console do Firebase até concluir.
+4. Conclua o assistente no console do Firebase.
 
 ---
 

@@ -80,18 +80,7 @@ class MainActivity : ComponentActivity() {
                             MatchPresenceScreen(
                                 viewModel = viewModel,
                                 onNavigateToAdmin = {
-                                    navController.navigate("admin_panel")
-                                },
-                                onNavigateToField = {
-                                    navController.navigate("soccer_field")
-                                }
-                            )
-                        }
-                        composable("admin_panel") {
-                            AdminPanelScreen(
-                                viewModel = viewModel,
-                                onNavigateBack = {
-                                    navController.popBackStack()
+                                    // Desativado no aplicativo de atletas
                                 },
                                 onNavigateToField = {
                                     navController.navigate("soccer_field")

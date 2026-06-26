@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.afup.afupfut.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -46,10 +45,10 @@ class FCMService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Configura a intent de clique para abrir a MainActivity
-        val intent = Intent(this, MainActivity::class.java).apply {
+        // Configura a intent de clique para abrir a atividade launcher do aplicativo de forma dinâmica
+        val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
+        } ?: Intent()
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,

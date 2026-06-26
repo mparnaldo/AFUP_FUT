@@ -113,18 +113,6 @@ fun MatchPresenceScreen(
                         Icon(Icons.Default.SportsSoccer, contentDescription = "Campinho", tint = NeonGreen)
                     }
 
-                    if (profile?.isAdmin == true) {
-                        Spacer(modifier = Modifier.width(10.dp))
-                        // Botão Painel do Administrador
-                        IconButton(
-                            onClick = onNavigateToAdmin,
-                            modifier = Modifier
-                                .background(SurfaceDark, CircleShape)
-                                .border(1.dp, SurfaceLightDark, CircleShape)
-                        ) {
-                            Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin", tint = ElectricCyan)
-                        }
-                    }
                 }
             }
 
