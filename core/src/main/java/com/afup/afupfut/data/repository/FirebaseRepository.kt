@@ -59,13 +59,36 @@ class FirebaseRepository {
         }
     }
 
-    // Faz upload da foto do perfil para o Firebase Storage e retorna a URL pública
-    suspend fun uploadAthletePhoto(uid: String, fileUri: Uri): String? {
+    // Redimensiona, compacta e converte a imagem para Base64 para evitar custos com Storage
+    suspend fun uploadAthletePhoto(contentResolver: android.content.ContentResolver, fileUri: Uri): String? {
         return try {
-            val storageRef = storage.reference.child("avatars/$uid.jpg")
-            storageRef.putFile(fileUri).await()
-            storageRef.downloadUrl.await().toString()
+            val inputStream = contentResolver.openInputStream(fileUri)
+            val originalBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            if (originalBitmap == null) return null
+
+            // Redimensiona mantendo proporção (max 200px)
+            val maxDim = 200
+            val width = originalBitmap.width
+            val height = originalBitmap.height
+            val (newWidth, newHeight) = if (width > height) {
+                val ratio = width.toFloat() / height.toFloat()
+                Pair(maxDim, (maxDim / ratio).toInt())
+            } else {
+                val ratio = height.toFloat() / width.toFloat()
+                Pair((maxDim / ratio).toInt(), maxDim)
+            }
+
+            val resizedBitmap = android.graphics.Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true)
+
+            val outputStream = java.io.ByteArrayOutputStream()
+            resizedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 75, outputStream)
+            val bytes = outputStream.toByteArray()
+            
+            "data:image/jpeg;base64," + android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }

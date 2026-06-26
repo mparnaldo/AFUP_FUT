@@ -438,6 +438,7 @@ fun RegisterAthleteScreen(
                     }
 
                     viewModel.registerAthlete(
+                        contentResolver = context.contentResolver,
                         name = name,
                         nickname = nickname,
                         height = height,

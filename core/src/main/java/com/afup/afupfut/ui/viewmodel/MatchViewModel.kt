@@ -191,6 +191,7 @@ class MatchViewModel : ViewModel() {
     // --- PERFIL DO ATLETA ---
 
     fun registerAthlete(
+        contentResolver: android.content.ContentResolver,
         name: String,
         nickname: String,
         height: Double,
@@ -209,12 +210,12 @@ class MatchViewModel : ViewModel() {
             var finalPhotoUrl = currentUserProfile?.photoUrl ?: ""
 
             if (photoUri != null) {
-                val uploadUrl = repository.uploadAthletePhoto(uid, photoUri)
+                val uploadUrl = repository.uploadAthletePhoto(contentResolver, photoUri)
                 if (uploadUrl != null) {
                     finalPhotoUrl = uploadUrl
                 } else {
                     isLoading = false
-                    onError("Falha ao enviar a foto de perfil.")
+                    onError("Falha ao processar a foto de perfil.")
                     return@launch
                 }
             }
