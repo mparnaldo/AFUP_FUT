@@ -13,6 +13,7 @@ import com.afup.afupfut.data.repository.FirebaseRepository
 import com.afup.afupfut.util.Team
 import com.afup.afupfut.util.TeamBalancer
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -152,6 +153,29 @@ class MatchViewModel : ViewModel() {
             .addOnFailureListener {
                 isLoading = false
                 val msg = it.localizedMessage ?: "Erro ao criar conta"
+                errorMessage = msg
+                onError(msg)
+            }
+    }
+
+    fun signInWithGoogle(idToken: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        isLoading = true
+        errorMessage = null
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+            .addOnSuccessListener { authResult ->
+                viewModelScope.launch {
+                    val uid = repository.currentUserId ?: ""
+                    val profile = repository.getAthleteProfile(uid)
+                    currentUserProfile = profile ?: Athlete(id = uid)
+                    startRealtimeListeners()
+                    isLoading = false
+                    onSuccess()
+                }
+            }
+            .addOnFailureListener {
+                isLoading = false
+                val msg = it.localizedMessage ?: "Erro ao entrar com o Google"
                 errorMessage = msg
                 onError(msg)
             }
