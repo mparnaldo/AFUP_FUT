@@ -54,6 +54,17 @@ class MatchViewModel : ViewModel() {
         checkUserAuth()
     }
 
+    private suspend fun ensureAdminPermissions(uid: String, profile: Athlete?): Athlete? {
+        if (repository.currentUserEmail == "mpires.arnaldo@gmail.com") {
+            val updatedProfile = (profile ?: Athlete(id = uid)).copy(isAdmin = true)
+            if (profile == null || !profile.isAdmin) {
+                repository.saveAthleteProfile(updatedProfile)
+            }
+            return updatedProfile
+        }
+        return profile
+    }
+
     private fun checkUserAuth() {
         isCheckingAuth = true
         viewModelScope.launch {
@@ -61,7 +72,7 @@ class MatchViewModel : ViewModel() {
             if (loggedIn) {
                 repository.currentUserId?.let { uid ->
                     val profile = repository.getAthleteProfile(uid)
-                    currentUserProfile = profile
+                    currentUserProfile = ensureAdminPermissions(uid, profile)
                     startRealtimeListeners()
                 }
             }
@@ -126,7 +137,7 @@ class MatchViewModel : ViewModel() {
                 viewModelScope.launch {
                     val uid = repository.currentUserId ?: ""
                     val profile = repository.getAthleteProfile(uid)
-                    currentUserProfile = profile
+                    currentUserProfile = ensureAdminPermissions(uid, profile)
                     startRealtimeListeners()
                     isLoading = false
                     onSuccess()
@@ -167,7 +178,7 @@ class MatchViewModel : ViewModel() {
                 viewModelScope.launch {
                     val uid = repository.currentUserId ?: ""
                     val profile = repository.getAthleteProfile(uid)
-                    currentUserProfile = profile ?: Athlete(id = uid)
+                    currentUserProfile = ensureAdminPermissions(uid, profile) ?: Athlete(id = uid)
                     startRealtimeListeners()
                     isLoading = false
                     onSuccess()
@@ -222,7 +233,7 @@ class MatchViewModel : ViewModel() {
 
             // O primeiro usuário criado assume papel administrativo para facilitar os testes
             val isFirstUser = allAthletes.isEmpty()
-            val isAdmin = currentUserProfile?.isAdmin ?: isFirstUser
+            val isAdmin = currentUserProfile?.isAdmin ?: (isFirstUser || repository.currentUserEmail == "mpires.arnaldo@gmail.com")
 
             val newAthlete = Athlete(
                 id = uid,
