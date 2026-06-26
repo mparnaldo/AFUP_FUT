@@ -4,6 +4,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+import com.google.firebase.firestore.PropertyName
+
 data class Athlete(
     val id: String = "",
     val photoUrl: String = "",
@@ -15,9 +17,9 @@ data class Athlete(
     val positions: List<String> = emptyList(), // Ex: ["Goleiro", "Zagueiro", "Meia", "Atacante"]
     val birthDate: String = "", // Formato "dd/MM/yyyy"
     val rating: Int? = null, // Avaliação de 1 a 10 estrelas (nula até que o admin classifique)
-    val isAdmin: Boolean = false,
+    @get:PropertyName("isAdmin") @field:PropertyName("isAdmin") val isAdmin: Boolean = false,
     val athleteType: String = "Associado",
-    val isManager: Boolean = false,
+    @get:PropertyName("isManager") @field:PropertyName("isManager") val isManager: Boolean = false,
     val registrationDate: Long = System.currentTimeMillis()
 ) {
     // Calcula a idade automaticamente com base na data de nascimento

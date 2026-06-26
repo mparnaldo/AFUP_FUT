@@ -267,6 +267,23 @@ class MatchViewModel : ViewModel() {
         }
     }
 
+    fun registerAthleteManually(athlete: Athlete, addToMatch: Boolean) {
+        viewModelScope.launch {
+            val success = repository.saveAthleteProfile(athlete)
+            if (success && addToMatch) {
+                val presence = PresencePlayer(
+                    athleteId = athlete.id,
+                    name = athlete.name,
+                    nickname = athlete.nickname,
+                    photoUrl = athlete.photoUrl,
+                    type = athlete.athleteType,
+                    isConfirmed = true
+                )
+                repository.addPlayerToPresenceList(presence)
+            }
+        }
+    }
+
     // --- CONTROLE DE PRESENÇA E PARTIDAS ---
 
     fun joinMatch(type: String, onError: (String) -> Unit) {

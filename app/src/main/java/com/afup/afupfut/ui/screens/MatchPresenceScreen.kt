@@ -28,6 +28,7 @@ import coil3.compose.AsyncImage
 import com.afup.afupfut.data.model.PresencePlayer
 import com.afup.afupfut.ui.theme.*
 import com.afup.afupfut.ui.viewmodel.MatchViewModel
+import com.afup.afupfut.util.ImageUtils
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -277,7 +278,15 @@ fun MatchPresenceScreen(
                                     .clip(CircleShape)
                                     .background(SurfaceLightDark)
                             ) {
-                                if (player.photoUrl.isNotBlank()) {
+                                val base64Image = ImageUtils.rememberBase64Image(player.photoUrl)
+                                if (base64Image != null) {
+                                    Image(
+                                        bitmap = base64Image,
+                                        contentDescription = "Foto do jogador",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else if (player.photoUrl.isNotBlank()) {
                                     AsyncImage(
                                         model = player.photoUrl,
                                         contentDescription = "Foto do jogador",

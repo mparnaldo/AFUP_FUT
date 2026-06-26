@@ -67,7 +67,12 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 viewModel = viewModel,
                                 onLoginSuccess = {
-                                    if (isAuthorized) {
+                                    val email = viewModel.currentUserEmail
+                                    val profile = viewModel.currentUserProfile
+                                    val superuser = email?.equals("mpires.arnaldo@gmail.com", ignoreCase = true) == true || profile?.isAdmin == true
+                                    val authorized = superuser || profile?.isManager == true
+
+                                    if (authorized) {
                                         navController.navigate("admin_panel") {
                                             popUpTo("login") { inclusive = true }
                                         }
@@ -118,13 +123,18 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(viewModel.currentUserProfile, viewModel.isCheckingAuth) {
                         if (!viewModel.isCheckingAuth) {
                             val currentRoute = navController.currentBackStackEntry?.destination?.route
-                            if (viewModel.currentUserProfile == null) {
+                            val email = viewModel.currentUserEmail
+                            val profile = viewModel.currentUserProfile
+                            val superuser = email?.equals("mpires.arnaldo@gmail.com", ignoreCase = true) == true || profile?.isAdmin == true
+                            val authorized = superuser || profile?.isManager == true
+
+                            if (profile == null) {
                                 if (currentRoute != "login" && currentRoute != "splash") {
                                     navController.navigate("login") {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 }
-                            } else if (!isAuthorized) {
+                            } else if (!authorized) {
                                 if (currentRoute != "unauthorized" && currentRoute != "splash") {
                                     navController.navigate("unauthorized") {
                                         popUpTo(0) { inclusive = true }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,9 +26,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import androidx.compose.foundation.Image
 import com.afup.afupfut.data.model.Athlete
 import com.afup.afupfut.ui.theme.*
 import com.afup.afupfut.ui.viewmodel.MatchViewModel
+import com.afup.afupfut.util.ImageUtils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -64,6 +67,18 @@ fun AdminPanelScreen(
 
     // Controle do diálogo de promoção de gestor
     var athleteForRoleChange by remember { mutableStateOf<Athlete?>(null) }
+
+    // Controle do diálogo de adicionar atleta manualmente
+    var showAddAthleteDialog by remember { mutableStateOf(false) }
+    var newNickname by remember { mutableStateOf("") }
+    var newFullName by remember { mutableStateOf("") }
+    var newAgeStr by remember { mutableStateOf("") }
+    var newHeightStr by remember { mutableStateOf("1.75") }
+    var newWeightStr by remember { mutableStateOf("75") }
+    var newRating by remember { mutableIntStateOf(5) }
+    var newAthleteType by remember { mutableStateOf("Associado") }
+    var newSelectedPositions by remember { mutableStateOf(listOf("Meia")) }
+    var isNewTypeDropdownExpanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -272,7 +287,15 @@ fun AdminPanelScreen(
                                         .clip(CircleShape)
                                         .background(SurfaceLightDark)
                                 ) {
-                                    if (player.photoUrl.isNotBlank()) {
+                                    val base64Image = ImageUtils.rememberBase64Image(player.photoUrl)
+                                    if (base64Image != null) {
+                                        Image(
+                                            bitmap = base64Image,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else if (player.photoUrl.isNotBlank()) {
                                         AsyncImage(
                                             model = player.photoUrl,
                                             contentDescription = null,
@@ -392,6 +415,29 @@ fun AdminPanelScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
+                Button(
+                    onClick = { showAddAthleteDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.PersonAdd, contentDescription = null, tint = BackgroundDark)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "ADICIONAR ATLETA MANUALMENTE",
+                            color = BackgroundDark,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Classificar Nível dos Atletas",
                     color = TextPrimary,
@@ -426,7 +472,15 @@ fun AdminPanelScreen(
                                     .clip(CircleShape)
                                     .background(SurfaceLightDark)
                             ) {
-                                if (athlete.photoUrl.isNotBlank()) {
+                                val base64Image = ImageUtils.rememberBase64Image(athlete.photoUrl)
+                                if (base64Image != null) {
+                                    Image(
+                                        bitmap = base64Image,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else if (athlete.photoUrl.isNotBlank()) {
                                     AsyncImage(
                                         model = athlete.photoUrl,
                                         contentDescription = null,
@@ -573,11 +627,71 @@ fun AdminPanelScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        // Foto de Perfil no Diálogo
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(SurfaceLightDark)
+                                .border(1.dp, NeonGreen, CircleShape)
+                        ) {
+                            val base64Image = ImageUtils.rememberBase64Image(athlete.photoUrl)
+                            if (base64Image != null) {
+                                Image(
+                                    bitmap = base64Image,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else if (athlete.photoUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = athlete.photoUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(Icons.Default.Person, contentDescription = null, tint = TextMuted, modifier = Modifier.size(40.dp).align(Alignment.Center))
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // Informações Básicas no Diálogo
+                        Text(
+                            text = athlete.name,
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        
+                        Text(
+                            text = "${athlete.getAge()} anos • ${athlete.height}m • ${athlete.weight}kg",
+                            color = TextSecondary,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                        
+                        Text(
+                            text = "Vínculo: ${athlete.athleteType} • Pé: ${athlete.dominantFoot}",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                        
+                        Text(
+                            text = "Posições: ${athlete.positions.joinToString(", ")}",
+                            color = TextSecondary,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+
+                        Divider(color = SurfaceLightDark, modifier = Modifier.padding(bottom = 12.dp))
+
                         Text(
                             text = "Atribua uma classificação de nível de 1 a 10 estrelas para este jogador:",
                             color = TextSecondary,
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(bottom = 20.dp)
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(bottom = 12.dp)
                         )
 
                         // Mostrador numérico grande
@@ -671,6 +785,294 @@ fun AdminPanelScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { athleteForRoleChange = null }) {
+                        Text("Cancelar", color = ElectricCyan)
+                    }
+                }
+            )
+        }
+
+        // --- DIALOG REGISTRAR NOVO ATLETA MANUALMENTE ---
+        if (showAddAthleteDialog) {
+            var validationError by remember { mutableStateOf<String?>(null) }
+            
+            AlertDialog(
+                onDismissRequest = { showAddAthleteDialog = false },
+                containerColor = SurfaceDark,
+                title = { Text("Registrar Novo Atleta", color = TextPrimary, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        OutlinedTextField(
+                            value = newNickname,
+                            onValueChange = { newNickname = it; validationError = null },
+                            label = { Text("Apelido * (Nome na Lista)", color = TextSecondary) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = NeonGreen,
+                                unfocusedBorderColor = SurfaceLightDark,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        OutlinedTextField(
+                            value = newFullName,
+                            onValueChange = { newFullName = it },
+                            label = { Text("Nome Completo (Opcional)", color = TextSecondary) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = NeonGreen,
+                                unfocusedBorderColor = SurfaceLightDark,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = newAgeStr,
+                                onValueChange = { newAgeStr = it; validationError = null },
+                                label = { Text("Idade *", color = TextSecondary) },
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = NeonGreen,
+                                    unfocusedBorderColor = SurfaceLightDark,
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            OutlinedTextField(
+                                value = newHeightStr,
+                                onValueChange = { newHeightStr = it; validationError = null },
+                                label = { Text("Altura (m) *", color = TextSecondary) },
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = NeonGreen,
+                                    unfocusedBorderColor = SurfaceLightDark,
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = newWeightStr,
+                                onValueChange = { newWeightStr = it; validationError = null },
+                                label = { Text("Peso (kg) *", color = TextSecondary) },
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = NeonGreen,
+                                    unfocusedBorderColor = SurfaceLightDark,
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            // Vínculo Dropdown
+                            Box(modifier = Modifier.weight(1f)) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp)
+                                        .border(1.dp, SurfaceLightDark, RoundedCornerShape(10.dp))
+                                        .clickable { isNewTypeDropdownExpanded = true }
+                                        .padding(horizontal = 12.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(text = newAthleteType, color = TextPrimary, fontSize = 14.sp)
+                                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = NeonGreen)
+                                    }
+                                }
+                                
+                                DropdownMenu(
+                                    expanded = isNewTypeDropdownExpanded,
+                                    onDismissRequest = { isNewTypeDropdownExpanded = false },
+                                    modifier = Modifier.background(SurfaceDark)
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Associado", color = TextPrimary) },
+                                        onClick = { newAthleteType = "Associado"; isNewTypeDropdownExpanded = false }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Convidado", color = TextPrimary) },
+                                        onClick = { newAthleteType = "Convidado"; isNewTypeDropdownExpanded = false }
+                                    )
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // Rating/Level
+                        Text(
+                            text = "Nível Técnico: $newRating / 10",
+                            color = GoldStar,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                        Slider(
+                            value = newRating.toFloat(),
+                            onValueChange = { newRating = it.toInt() },
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            colors = SliderDefaults.colors(
+                                thumbColor = GoldStar,
+                                activeTrackColor = GoldStar,
+                                inactiveTrackColor = SurfaceLightDark
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Posições
+                        Text(
+                            text = "Posições (Selecione pelo menos uma):",
+                            color = TextPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                        
+                        val positionsList = listOf("Goleiro", "Zagueiro", "Lateral", "Volante", "Meia", "Atacante")
+                        Row(
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            positionsList.forEach { pos ->
+                                val isSelected = newSelectedPositions.contains(pos)
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            if (isSelected) NeonGreen.copy(alpha = 0.15f) else Color.Transparent,
+                                            RoundedCornerShape(16.dp)
+                                        )
+                                        .border(
+                                            1.dp,
+                                            if (isSelected) NeonGreen else SurfaceLightDark,
+                                            RoundedCornerShape(16.dp)
+                                        )
+                                        .clickable {
+                                            newSelectedPositions = if (isSelected) {
+                                                newSelectedPositions.filter { it != pos }
+                                            } else {
+                                                newSelectedPositions + pos
+                                            }
+                                        }
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = pos,
+                                        color = if (isSelected) NeonGreen else TextSecondary,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                }
+                            }
+                        }
+                        
+                        validationError?.let { err ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = err, color = RedError, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val age = newAgeStr.toIntOrNull()
+                            val height = newHeightStr.replace(",", ".").toDoubleOrNull()
+                            val weight = newWeightStr.replace(",", ".").toDoubleOrNull()
+                            
+                            if (newNickname.isBlank()) {
+                                validationError = "Apelido é obrigatório."
+                                return@Button
+                            }
+                            if (age == null || age <= 0) {
+                                validationError = "Insira uma idade válida."
+                                return@Button
+                            }
+                            if (height == null || height <= 0.0) {
+                                validationError = "Insira uma altura válida."
+                                return@Button
+                            }
+                            if (weight == null || weight <= 0.0) {
+                                validationError = "Insira um peso válido."
+                                return@Button
+                            }
+                            if (newSelectedPositions.isEmpty()) {
+                                validationError = "Selecione pelo menos uma posição."
+                                return@Button
+                            }
+                            
+                            val athleteId = java.util.UUID.randomUUID().toString()
+                            val athlete = Athlete(
+                                id = athleteId,
+                                name = newFullName.ifBlank { newNickname },
+                                nickname = newNickname,
+                                height = height,
+                                weight = weight,
+                                dominantFoot = "Direito",
+                                positions = newSelectedPositions,
+                                birthDate = "01/01/${LocalDate.now().year - age}",
+                                rating = newRating,
+                                isAdmin = false,
+                                athleteType = newAthleteType,
+                                isManager = false
+                            )
+                            viewModel.registerAthleteManually(athlete, addToMatch = matchState?.isOpen == true)
+                            
+                            // Reset states
+                            showAddAthleteDialog = false
+                            newNickname = ""
+                            newFullName = ""
+                            newAgeStr = ""
+                            newHeightStr = "1.75"
+                            newWeightStr = "75"
+                            newRating = 5
+                            newAthleteType = "Associado"
+                            newSelectedPositions = listOf("Meia")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = NeonGreen)
+                    ) {
+                        Text("Registrar", color = BackgroundDark, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAddAthleteDialog = false }) {
                         Text("Cancelar", color = ElectricCyan)
                     }
                 }

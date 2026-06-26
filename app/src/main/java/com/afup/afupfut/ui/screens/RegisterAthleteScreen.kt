@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.afup.afupfut.ui.theme.*
 import com.afup.afupfut.ui.viewmodel.MatchViewModel
+import com.afup.afupfut.util.ImageUtils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -154,18 +155,28 @@ fun RegisterAthleteScreen(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                } else if (existingPhotoUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = existingPhotoUrl,
-                        contentDescription = "Foto existente",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
                 } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = NeonGreen, modifier = Modifier.size(32.dp))
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Adicionar Foto", color = TextSecondary, fontSize = 11.sp)
+                    val base64Image = ImageUtils.rememberBase64Image(existingPhotoUrl)
+                    if (base64Image != null) {
+                        Image(
+                            bitmap = base64Image,
+                            contentDescription = "Foto existente",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (existingPhotoUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = existingPhotoUrl,
+                            contentDescription = "Foto existente",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = NeonGreen, modifier = Modifier.size(32.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Adicionar Foto", color = TextSecondary, fontSize = 11.sp)
+                        }
                     }
                 }
             }
