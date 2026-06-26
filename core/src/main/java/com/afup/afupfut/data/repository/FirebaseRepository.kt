@@ -231,4 +231,14 @@ class FirebaseRepository {
             false
         }
     }
+
+    // Promove ou rebaixa um atleta ao papel de Gestor no Firestore
+    suspend fun toggleManagerRole(athleteId: String, makeManager: Boolean): Boolean {
+        return try {
+            firestore.collection("athletes").document(athleteId).update("isManager", makeManager).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

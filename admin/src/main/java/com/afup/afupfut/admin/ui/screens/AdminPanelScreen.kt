@@ -44,12 +44,18 @@ fun AdminPanelScreen(
         allAthletes.filter { it.rating == null }
     }
 
+    val currentUserProfile = viewModel.currentUserProfile
+    val isSuperuser = viewModel.currentUserEmail?.equals("mpires.arnaldo@gmail.com", ignoreCase = true) == true || currentUserProfile?.isAdmin == true
+
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var matchDateInput by remember { mutableStateOf("") }
     
     // Controle da janela de avaliação por estrelas
     var selectedAthleteForRating by remember { mutableStateOf<Athlete?>(null) }
     var ratingStarsSelected by remember { mutableIntStateOf(5) }
+
+    // Controle do diálogo de promoção de gestor
+    var athleteForRoleChange by remember { mutableStateOf<Athlete?>(null) }
 
     Box(
         modifier = Modifier
@@ -282,12 +288,39 @@ fun AdminPanelScreen(
 
                         // Nome
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(text = athlete.nickname, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = athlete.nickname, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                if (athlete.isManager) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .background(NeonGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(text = "GESTOR", color = NeonGreen, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                                    }
+                                }
+                            }
                             Text(
                                 text = athlete.positions.joinToString(", ") + " • ${athlete.getAge()} anos",
                                 color = TextSecondary,
                                 fontSize = 12.sp
                             )
+                        }
+
+                        val isThisAthleteSuperuser = athlete.isAdmin
+
+                        if (isSuperuser && !isThisAthleteSuperuser) {
+                            IconButton(
+                                onClick = { athleteForRoleChange = athlete },
+                                modifier = Modifier.padding(end = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Shield,
+                                    tint = if (athlete.isManager) NeonGreen else TextMuted,
+                                    contentDescription = "Gerenciar Permissão"
+                                )
+                            }
                         }
 
                         // Rating Atual (Estrelas)
@@ -439,6 +472,51 @@ fun AdminPanelScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { selectedAthleteForRating = null }) {
+                        Text("Cancelar", color = ElectricCyan)
+                    }
+                }
+            )
+        }
+
+        // --- DIALOG PROMOÇÃO DE GESTOR ---
+        if (athleteForRoleChange != null) {
+            val athlete = athleteForRoleChange!!
+            AlertDialog(
+                onDismissRequest = { athleteForRoleChange = null },
+                containerColor = SurfaceDark,
+                title = {
+                    Text(
+                        text = if (athlete.isManager) "Remover Gestor" else "Tornar Gestor",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = if (athlete.isManager) 
+                            "Deseja remover as permissões de Gestor de ${athlete.nickname}? Ele não poderá mais acessar o painel de administrador."
+                            else "Deseja tornar ${athlete.nickname} um Gestor? Ele terá acesso ao app do admin para classificar atletas, abrir lista de partidas e balancear times.",
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.toggleManagerRole(athlete.id, !athlete.isManager)
+                            athleteForRoleChange = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = if (athlete.isManager) RedError else NeonGreen)
+                    ) {
+                        Text(
+                            text = if (athlete.isManager) "Remover" else "Tornar Gestor",
+                            color = BackgroundDark,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { athleteForRoleChange = null }) {
                         Text("Cancelar", color = ElectricCyan)
                     }
                 }

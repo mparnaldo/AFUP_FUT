@@ -41,7 +41,7 @@ fun MatchPresenceScreen(
     val matchState = viewModel.matchState
 
     var showJoinDialog by remember { mutableStateOf(false) }
-    var joinType by remember { mutableStateOf("Associado") }
+    var joinType by remember(profile) { mutableStateOf(profile?.athleteType ?: "Associado") }
     var joinDropdownExpanded by remember { mutableStateOf(false) }
 
     // Fechar a notificação interna após 4 segundos automaticamente

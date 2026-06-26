@@ -98,6 +98,10 @@ fun RegisterAthleteScreen(
     // Controle do Dropdown de pé dominante
     var isFootDropdownExpanded by remember { mutableStateOf(false) }
 
+    // Controle do Dropdown de Tipo de Vínculo (Associado vs Convidado)
+    var athleteType by remember { mutableStateOf("Associado") }
+    var isTypeDropdownExpanded by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -327,6 +331,53 @@ fun RegisterAthleteScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // --- TIPO DE VÍNCULO (DROPDOWN) ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize(Alignment.TopStart)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .border(1.dp, SurfaceLightDark, RoundedCornerShape(12.dp))
+                        .clickable { isTypeDropdownExpanded = true }
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Tipo de Vínculo: $athleteType",
+                            color = TextPrimary,
+                            fontSize = 16.sp
+                        )
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = NeonGreen)
+                    }
+                }
+
+                DropdownMenu(
+                    expanded = isTypeDropdownExpanded,
+                    onDismissRequest = { isTypeDropdownExpanded = false },
+                    modifier = Modifier.background(SurfaceDark)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Associado (Membro)", color = TextPrimary) },
+                        onClick = { athleteType = "Associado"; isTypeDropdownExpanded = false }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Convidado (Visitante)", color = TextPrimary) },
+                        onClick = { athleteType = "Convidado"; isTypeDropdownExpanded = false }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- POSIÇÕES EM QUE JOGA (SELEÇÃO MÚLTIPLA) ---
@@ -447,6 +498,7 @@ fun RegisterAthleteScreen(
                         positions = selectedPositions,
                         birthDate = birthDate,
                         photoUri = selectedImageUri,
+                        athleteType = athleteType,
                         onSuccess = {
                             onRegistrationSuccess()
                         },

@@ -16,6 +16,8 @@ data class Athlete(
     val birthDate: String = "", // Formato "dd/MM/yyyy"
     val rating: Int? = null, // Avaliação de 1 a 10 estrelas (nula até que o admin classifique)
     val isAdmin: Boolean = false,
+    val athleteType: String = "Associado",
+    val isManager: Boolean = false,
     val registrationDate: Long = System.currentTimeMillis()
 ) {
     // Calcula a idade automaticamente com base na data de nascimento

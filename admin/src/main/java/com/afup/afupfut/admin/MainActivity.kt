@@ -41,10 +41,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
+                    val isSuperuser = viewModel.currentUserEmail?.equals("mpires.arnaldo@gmail.com", ignoreCase = true) == true || viewModel.currentUserProfile?.isAdmin == true
+                    val isAuthorized = isSuperuser || viewModel.currentUserProfile?.isManager == true
+
                     val startDestination = when {
                         viewModel.isCheckingAuth -> "splash"
                         viewModel.currentUserProfile == null -> "login"
-                        viewModel.currentUserProfile?.isAdmin == false -> "unauthorized"
+                        !isAuthorized -> "unauthorized"
                         else -> "admin_panel"
                     }
 
@@ -64,7 +67,7 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 viewModel = viewModel,
                                 onLoginSuccess = {
-                                    if (viewModel.currentUserProfile?.isAdmin == true) {
+                                    if (isAuthorized) {
                                         navController.navigate("admin_panel") {
                                             popUpTo("login") { inclusive = true }
                                         }
@@ -121,7 +124,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 }
-                            } else if (viewModel.currentUserProfile?.isAdmin == false) {
+                            } else if (!isAuthorized) {
                                 if (currentRoute != "unauthorized" && currentRoute != "splash") {
                                     navController.navigate("unauthorized") {
                                         popUpTo(0) { inclusive = true }

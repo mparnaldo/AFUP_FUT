@@ -46,6 +46,9 @@ class MatchViewModel : ViewModel() {
     // Alertas de notificações em tempo real dentro do app
     var inAppNotification by mutableStateOf<String?>(null)
 
+    val currentUserEmail: String?
+        get() = repository.currentUserEmail
+
     private var previousPlayersList = emptyList<PresencePlayer>()
     private var matchListenerJob: Job? = null
     private var athletesListenerJob: Job? = null
@@ -211,6 +214,7 @@ class MatchViewModel : ViewModel() {
         positions: List<String>,
         birthDate: String,
         photoUri: Uri?,
+        athleteType: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -246,7 +250,9 @@ class MatchViewModel : ViewModel() {
                 positions = positions,
                 birthDate = birthDate,
                 rating = currentUserProfile?.rating, // Preserva classificação se houver
-                isAdmin = isAdmin
+                isAdmin = isAdmin,
+                athleteType = athleteType,
+                isManager = currentUserProfile?.isManager ?: false
             )
 
             val success = repository.saveAthleteProfile(newAthlete)
@@ -300,6 +306,12 @@ class MatchViewModel : ViewModel() {
     fun updatePlayerRating(athleteId: String, stars: Int) {
         viewModelScope.launch {
             repository.updateAthleteRating(athleteId, stars)
+        }
+    }
+
+    fun toggleManagerRole(athleteId: String, makeManager: Boolean) {
+        viewModelScope.launch {
+            repository.toggleManagerRole(athleteId, makeManager)
         }
     }
 
